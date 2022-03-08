@@ -3,13 +3,12 @@ from calendar import calendar
 import re
 from flask import Flask, request, Response, redirect, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
-from numpy import identity # another means of gen foreign key ?
+from numpy import identity
 import pandas as pd
 import datetime
 import requests
 from sqlalchemy import BigInteger, ForeignKey, PrimaryKeyConstraint
 from .models import DB, Day, Appointment, Client
-import names
 
 datelist = pd.date_range(start="2022-01-01",end="2022-12-31").to_pydatetime().tolist()
 date_map = [str(date.month)+str(date.day) for date in datelist]
@@ -60,7 +59,7 @@ def create_app():
 
 
         # day needs name
-        # id date name ; int str str
+        # id date name - int str str
 
 
         # apt needs
@@ -68,23 +67,14 @@ def create_app():
         for i, x in enumerate(datelist):
             
             tmp = Day(id=i, date=str(x.month)+'/'+str(x.day), name=days[int(str(x.day))%7])
-            # tmp.appointments += [Appointment(id=days[int(str(x.day))%7], time=str(x.hour)+':'+str(x.minute), day_id=i+1)]
             # get a datetime and an int to create appointment for each day
             if not Day.query.get(tmp.id):
-
-                # alias = names.get_full_name()
-                # my_client = Client(id=i**2-i, name=alias, age=28)
-                #                    # apt will need client id and client
-                # tmp.appointments += [Appointment(id=days[int(str(x.day))%7]+str(x.month)+str(x.day), day_id=i, time=12,
-                #                                  client_id=my_client.id)]
-
                 DB.session.add(tmp)
 
             # should be able to query for Appointment.day
         DB.session.commit()
 
         return 'datelist created'
-
 
 
     @APP.route('/create_client', methods=['GET', 'POST'])
@@ -148,9 +138,8 @@ def create_app():
 
     @APP.route('/delete_appointment', methods=['GET', 'POST'])
     def delete_appointment():
-
-        # for now the appointment ids are just the day names
-        # so we will delete by appointment.day.date
+        # delete appointment by appointment id
+ 
         if request.method == 'POST':
             client_id = request.form.get('search7')
 
@@ -208,7 +197,6 @@ def create_app():
                                         
                                         if datetime.datetime(year=2022,month=m, day=d) == item:
                                             value = ind
-                                            print('poopfart')
                                             break
                                             
                                 except Exception as ex_ception:
@@ -223,7 +211,6 @@ def create_app():
                 return redirect(url_for('schedule_appointment'))
 
             if Day.query.get(value):
-                print('fart')
                 my_day = Day.query.get(value)
 
                 a_client = Client.query.get(int(client_id_x))  # <<------------------
@@ -269,7 +256,7 @@ def create_app():
         if request.method == 'POST':
 
                     
-            ''' ask for range of days to see appointments for
+            '''will ask for range of days to see appointments for
                 mm/dd - mm/dd or just single day mm/dd'''
             day_range = request.form.get('search1')
             try:
@@ -291,15 +278,12 @@ def create_app():
                                 
                                 # meaning the date is queryable at ind index
 
-                                values += [ind]
-                                
-                                print('poopfart')
-                                    
+                                values += [ind]                                                                                                  
                                 
                     else:
                         return redirect(url_for('planner'))
             except Exception as ex_ception:
-                print(str(ex_ception)+' was the exception here buddy')
+                print(str(ex_ception)+' was the exception')
 
                 return redirect(url_for('planner'))
 
@@ -331,8 +315,6 @@ def create_app():
                         appts += [tmp+' - Free']
                 
 
-                        
-                                           # always adjust the action                                                                                    route in results and base html !!!!
             return render_template('results.html', answer=' | '.join(appts))
 
         return render_template('base2.html')
