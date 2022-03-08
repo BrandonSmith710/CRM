@@ -50,11 +50,6 @@ def create_app():
 
 
 
-
-
-
-
-
     # this route will load 365 days into the empty database
     @APP.route('/loaddb')
     def load_db():
@@ -89,9 +84,6 @@ def create_app():
         DB.session.commit()
 
         return 'datelist created'
-
-
-
 
 
 
@@ -142,10 +134,7 @@ def create_app():
 
                 return render_template('results5.html', answer=name)
 
-
-
         return render_template('base5.html')
-
 
 
     @APP.route('/check')
@@ -178,9 +167,6 @@ def create_app():
             return render_template('results4.html', answer='Appointment '+apt_id+' was removed')
 
         return render_template('base4.html')
-
-
-
 
 
     @APP.route('/schedule_appointment', methods=['GET', 'POST'])
@@ -275,13 +261,6 @@ def create_app():
         return 'Data has been refreshed.'
 
 
-
-
-
-
-
-
-
     @APP.route('/planner', methods=['GET', 'POST'])
     def planner():
 
@@ -356,13 +335,9 @@ def create_app():
                                            # always adjust the action                                                                                    route in results and base html !!!!
             return render_template('results.html', answer=' | '.join(appts))
 
-            
-
         return render_template('base2.html')
         
             
-            
-
     return APP
 
 
