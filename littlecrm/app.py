@@ -10,8 +10,6 @@ import requests
 from sqlalchemy import BigInteger, ForeignKey, PrimaryKeyConstraint
 from .models import DB, Day, Appointment, Client
 
-datelist = pd.date_range(start="2022-01-01",end="2022-12-31").to_pydatetime().tolist()
-date_map = [str(date.month)+str(date.day) for date in datelist]
 
 def create_app():
 
@@ -42,9 +40,7 @@ def create_app():
                 if key in option.lower() or (option.lower() in key):
 
                     return redirect(url_for(k[key]))
-                                                    # note to set form action=/routename in the html pages
-            # return render_template('results.html', answer=)
-
+                                                   
         return render_template('base1.html')
 
 
@@ -55,15 +51,7 @@ def create_app():
 
         # create day
         days = 'Sunday Monday Tuesday Wednesday Thursday Friday Saturday'.split()
-        # datelist = pd.date_range(start="2022-01-01",end="2022-12-31").to_pydatetime().tolist()
 
-
-        # day needs name
-        # id date name - int str str
-
-
-        # apt needs
-        # need id, time, day_id, day ; int str str relationship
         for i, x in enumerate(datelist):
             
             tmp = Day(id=i, date=str(x.month)+'/'+str(x.day), name=days[int(str(x.day))%7])
@@ -71,7 +59,6 @@ def create_app():
             if not Day.query.get(tmp.id):
                 DB.session.add(tmp)
 
-            # should be able to query for Appointment.day
         DB.session.commit()
 
         return 'datelist created'
@@ -200,7 +187,7 @@ def create_app():
                                             break
                                             
                                 except Exception as ex_ception:
-                                    print(str(ex_ception)+' was the exception here buddy')
+                                    print(str(ex_ception)+' was the exception')
                                     return redirect(url_for('schedule_appointment'))    
                                     
                             else:
@@ -237,7 +224,7 @@ def create_app():
 
                 return render_template('results2.html', answer=str([i.id+': '+str(i.time)+' on '+i.day.date for i in a_client.appointments]))
 
-                            # change action routes in base and results2 to respective names
+                            
         return render_template('base.html')
 
 
@@ -299,7 +286,7 @@ def create_app():
             
             appts = []
             for day_id in r:
-                          # primary keys for day are ints 1- 365
+                # primary keys for day are ints 1- 365
                 if Day.query.get(day_id):
 
                     my_day = Day.query.get(day_id)
