@@ -1,12 +1,8 @@
-from ast import Return
-from calendar import calendar
-import re
+
 from flask import Flask, request, Response, redirect, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
-from numpy import identity
 import pandas as pd
 import datetime
-import requests
 from sqlalchemy import BigInteger, ForeignKey, PrimaryKeyConstraint
 from .models import DB, Day, Appointment, Client
 
@@ -252,8 +248,6 @@ def create_app():
            list of days matching the length of the data range, each date shows
            that it is free, or it will show its list of appointments"""
 
-        e = []
-
         if request.method == 'POST':
             day_range = request.form.get('search1')
             try:
@@ -262,21 +256,12 @@ def create_app():
                 day_range = [[int(''.join(filter(a, b))) for b in x] for x in day_range]
                 values = []
                 for day_id in day_range:
-                    if 0 < day_id[0] < 13 or not 0 < day_id[1] <= 31:
-                                    
+                    if 0 < day_id[0] < 13 or not 0 < day_id[1] <= 31:       
                         m, d = day_id
-
-                        # query.get for range values[0] and values[1]
-
                     
-                        for ind, item in enumerate(datelist):
-                                            
-                            if datetime.datetime(year=2022,month=m, day=d) == item:
-                                
-                                # meaning the date is queryable at ind index
-
-                                values += [ind]                                                                                                  
-                                
+                        for ind, item in enumerate(datelist):                                           
+                            if datetime.datetime(year=2022,month=m, day=d) == item:                               
+                                values += [ind]                                                                                                                             
                     else:
                         return redirect(url_for('planner'))
             except Exception as ex_ception:
@@ -296,9 +281,8 @@ def create_app():
             
             appts = []
             for day_id in r:
-                # primary keys for day are ints 1- 365
                 if Day.query.get(day_id):
-
+                    # primary keys for day are ints 1- 365
                     my_day = Day.query.get(day_id)
                     tmp = f'{my_day.name} {my_day.date}'
                     extra = []
