@@ -31,29 +31,28 @@ def create_app():
 
     @APP.route('/', methods=['GET','POST'])
     def root():
-        k = {'schedule': 'schedule_appointment', 'planner': 'planner', 'load': 'loaddb', 'create client':'create_client',
-             'delete': 'delete_appointment', 'remove': 'remove_client'}
+        # this route will present the user with choices for actions they can take next
+    
+        k = {'schedule': 'schedule_appointment', 'planner': 'planner', 'load': 'loaddb',
+             'create client':'create_client', 'delete': 'delete_appointment',
+             'remove': 'remove_client'}
+        
         if request.method == 'POST':
-            # date = request.form.get('search')
             option = request.form.get('search')
             for key in k:
                 if key in option.lower() or (option.lower() in key):
-
                     return redirect(url_for(k[key]))
                                                    
         return render_template('base1.html')
 
 
 
-    # this route will load 365 days into the empty database
     @APP.route('/loaddb')
     def load_db():
-
-        # create day
+        # this route will load 365 days into the empty database
+        
         days = 'Sunday Monday Tuesday Wednesday Thursday Friday Saturday'.split()
-
         for i, x in enumerate(datelist):
-            
             tmp = Day(id=i, date=str(x.month)+'/'+str(x.day), name=days[int(str(x.day))%7])
             # get a datetime and an int to create appointment for each day
             if not Day.query.get(tmp.id):
@@ -66,6 +65,8 @@ def create_app():
 
     @APP.route('/create_client', methods=['GET', 'POST'])
     def create_client():
+        """the create_client function will ask the user for an id, name, and age,
+           so that a new client object may be created in the system"""
 
         if request.method == 'POST':
             
@@ -78,7 +79,7 @@ def create_app():
             try:
                 if not Client.query.get(int(id_x)):
 
-                    new_client = Client(id=int(id_x), name=name_x, age=age_x)
+                    new_client = Client(id=int(id_x), name=name_x, age=int(age_x))
 
                     DB.session.add(new_client)
                     
@@ -92,6 +93,8 @@ def create_app():
 
     @APP.route('/remove_client', methods=['GET', 'POST'])
     def remove_client():
+        """this route will delete all appointments for a client before
+           deleting the client profile"""
 
         if request.method == 'POST':
 
@@ -116,16 +119,24 @@ def create_app():
 
     @APP.route('/check')
     def check():
-
-        end =  str([apt.id+' '+apt.day.date+' @ '+str(apt.time) + (' with '+apt.client.name or ' with Nobody') for apt in Appointment.query.all()])+'  '+ str([d.date for d in Day.query.all() if d.date[-2:] == '13'
-        ]) + '  |  Clients' + str([c.name for c in Client.query.all()])
+        """this route allows one to check the occupancy of the Client and
+           Appointment tables after loading, updating or clearing the database,
+           and to ensure that the day objects have been created or deleted as
+           expected"""
+        
+        
+        end =  str([apt.id + ' ' + apt.day.date+' @ '+ str(apt.time)
+        + (' with ' + apt.client.name or ' with Nobody') for apt in
+        Appointment.query.all()]) + '  '+ str([d.date for d in Day.query.all()
+        if d.date[-2:] == '13']) + '  |  Clients' + str([c.name for c in
+        Client.query.all()])
 
         return end
 
 
     @APP.route('/delete_appointment', methods=['GET', 'POST'])
     def delete_appointment():
-        # delete appointment by appointment id
+        # route to delete appointments by appointment id
  
         if request.method == 'POST':
             client_id = request.form.get('search7')
@@ -147,32 +158,27 @@ def create_app():
 
     @APP.route('/schedule_appointment', methods=['GET', 'POST'])
     def schedule_appointment():
+        """This route offers the ability to create new appointments for existing clients,
+           currently the CRM accepts a day value for 1-365 to assign the date, an apt.
+           time(int 9-6), and a client id(int)"""
 
-        '''Three forms: day_id(int 1-365),
-        apt_time(int 9-6), client_id(int)'''
-
+        
         if request.method == 'POST':
 
-            # they will need to enter day_id in mm/dd or mm-dd format
-
+            # enter day_id in mm/dd or mm-dd format
             day_id = request.form.get('search2')
-
-            # apt_time needs to be entered as int 9-6 for now ************************************************************
+            # apt_time will be entered as int 9-6 for now
             apt_time = request.form.get('search3')
-
-            # int
             client_id_x = request.form.get('search35')
     
-            # check if there are at least 4 digits in input
+            # validate input
             if 5 > len(list(filter(lambda x: x.isdigit(), day_id))) >= 2:
-                # and /, -, ' ', or . in input
                 if any(b in day_id for b in '/- .'):
                     for x in '/- .':
                         if x in day_id:                                       
                             day_id = [int(j) for j in day_id.split(x)]
 
-                            if 0 < day_id[0] < 13 or not 0 < day_id[1] <= 31:
-                                
+                            if 0 < day_id[0] < 13 or not 0 < day_id[1] <= 31:                              
                                 m, d = day_id
                                 value = 0
 
@@ -200,7 +206,7 @@ def create_app():
             if Day.query.get(value):
                 my_day = Day.query.get(value)
 
-                a_client = Client.query.get(int(client_id_x))  # <<------------------
+                a_client = Client.query.get(int(client_id_x))
 
                 if a_client:
 
@@ -211,7 +217,8 @@ def create_app():
                     name = a_client.name
                     if not apt_time in t+my:
 
-                        apt_id = ''.join(name[j] for j in range(len(name)) if not j % 2)[::-1] + ('$%'.join(list(str(client_id_x)[::-1]))) + str(len(Appointment.query.all()))
+                        apt_id = ''.join(name[j] for j in range(len(name)) if not j % 2)[::-1] + ('$%'.join(
+                                 list(str(client_id_x)[::-1]))) + str(len(Appointment.query.all()))
 
                         apt_x = Appointment(id=apt_id, day_id=my_day.id, time=apt_time, client_id=a_client.id)
                         my_day.appointments += [apt_x]
@@ -222,7 +229,8 @@ def create_app():
                     print('Bad ID')
                     return redirect(url_for('schedule_appointment'))
 
-                return render_template('results2.html', answer=str([i.id+': '+str(i.time)+' on '+i.day.date for i in a_client.appointments]))
+                return render_template('results2.html', answer=str([i.id+': '+str(i.time)+' on '+i.day.date
+                                                                    for i in a_client.appointments]))
 
                             
         return render_template('base.html')
@@ -230,6 +238,8 @@ def create_app():
 
     @APP.route('/refresh')
     def refresh():
+        # wipe all data from Day, Client and Appointment tables
+        
         DB.drop_all()
         DB.create_all()
         return 'Data has been refreshed.'
@@ -237,14 +247,14 @@ def create_app():
 
     @APP.route('/planner', methods=['GET', 'POST'])
     def planner():
+        """this route asks the user for a range of dates entered in the form
+           mm/dd - mm/dd, or optionally just one date mm/dd. returned is a 
+           list of days matching the length of the data range, each date shows
+           that it is free, or it will show its list of appointments"""
 
         e = []
 
         if request.method == 'POST':
-
-                    
-            '''will ask for range of days to see appointments for
-                mm/dd - mm/dd or just single day mm/dd'''
             day_range = request.form.get('search1')
             try:
                 day_range = [c.split('/') for c in day_range.split('-')]
