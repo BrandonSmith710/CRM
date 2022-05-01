@@ -245,10 +245,9 @@ def create_app():
                 values = []
                 for day_id in day_range:
                     if 0 < day_id[0] < 13 or not 0 < day_id[1] <= 31:       
-                        m, d = day_id
-                    
+                        m, d = day_id           
                         for ind, item in enumerate(datelist):                                           
-                            if datetime.datetime(year=2022,month=m, day=d) == item:                               
+                            if datetime.datetime(year=2022, month=m, day=d) == item:                               
                                 values += [ind]                                                                                                                             
                     else:
                         return redirect(url_for('view_planner'))
