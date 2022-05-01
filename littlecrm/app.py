@@ -13,15 +13,11 @@ def create_app():
 
     datelist = pd.date_range(start="2022-01-01",end="2022-12-31").to_pydatetime().tolist()
 
-    APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///crm.sqlite3'
+    APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mycrm.sqlite3'
     APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     DB.init_app(APP)
     @APP.before_first_request
-    def create_tables():
-        DB.create_all()
-
-    @APP.before_first_request   
     def create_tables():
         DB.create_all()
 

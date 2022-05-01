@@ -10,8 +10,6 @@ python-dotenv = "*"
 datetime = "*"
 pandas = "*"
 numpy = "*"
-requests = "*"
-names = "*"
 
 [dev-packages]
 
