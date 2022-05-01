@@ -1,4 +1,3 @@
-
 from flask import Flask, request, Response, redirect, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
@@ -11,7 +10,7 @@ def create_app():
 
     APP = Flask(__name__)
 
-    datelist = pd.date_range(start="2022-01-01",end="2022-12-31").to_pydatetime().tolist()
+    datelist = pd.date_range(start="2022-01-01", end="2022-12-31").to_pydatetime().tolist()
 
     APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mycrm.sqlite3'
     APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -23,26 +22,28 @@ def create_app():
 
     @APP.route('/', methods=['GET','POST'])
     def root():
-        # this route will present the user with choices for actions they can take next
-    
-        k = {'schedule': 'schedule_appointment', 'planner': 'planner', 'load': 'loaddb',
-             'create client':'create_client', 'delete': 'delete_appointment',
-             'remove': 'remove_client'}
+        """this route will present the user with number options representing
+           places they can go in the CRM"""
+
+        k = {1: 'schedule_appointment', 2: 'view_planner', 3: 'create_client',
+             4:'delete_client', 5: 'delete_appointment', 6: 'check',
+             7: 'load_db', 8: 'refresh'}
         
         if request.method == 'POST':
             option = request.form.get('search')
-            for key in k:
-                if key in option.lower() or (option.lower() in key):
-                    return redirect(url_for(k[key]))
+
+            if option.isdigit():
+                if int(option) in range(1, 9):
+                    option = int(option)
+
+                    return redirect(url_for(k[option]))
                                                    
         return render_template('base1.html')
 
-
-
-    @APP.route('/loaddb')
+    @APP.route('/load_db')
     def load_db():
         # this route will load 365 days into the empty database
-        
+
         days = 'Sunday Monday Tuesday Wednesday Thursday Friday Saturday'.split()
         for i, x in enumerate(datelist):
             tmp = Day(id=i, date=str(x.month)+'/'+str(x.day), name=days[int(str(x.day))%7])
@@ -53,7 +54,6 @@ def create_app():
         DB.session.commit()
 
         return 'datelist created'
-
 
     @APP.route('/create_client', methods=['GET', 'POST'])
     def create_client():
@@ -83,8 +83,8 @@ def create_app():
 
         return render_template('base3.html')
 
-    @APP.route('/remove_client', methods=['GET', 'POST'])
-    def remove_client():
+    @APP.route('/delete_client', methods=['GET', 'POST'])
+    def delete_client():
         """this route will delete all appointments for a client before
            deleting the client profile"""
 
@@ -108,14 +108,12 @@ def create_app():
 
         return render_template('base5.html')
 
-
     @APP.route('/check')
     def check():
         """this route allows one to check the occupancy of the Client and
            Appointment tables after loading, updating or clearing the database,
            and to ensure that the day objects have been created or deleted as
            expected"""
-        
         
         end =  str([apt.id + ' ' + apt.day.date+' @ '+ str(apt.time)
         + (' with ' + apt.client.name or ' with Nobody') for apt in
@@ -124,7 +122,6 @@ def create_app():
         Client.query.all()])
 
         return end
-
 
     @APP.route('/delete_appointment', methods=['GET', 'POST'])
     def delete_appointment():
@@ -147,13 +144,11 @@ def create_app():
 
         return render_template('base4.html')
 
-
     @APP.route('/schedule_appointment', methods=['GET', 'POST'])
     def schedule_appointment():
         """This route offers the ability to create new appointments for existing clients,
            currently the CRM accepts a day value for 1-365 to assign the date, an apt.
            time(int 9-6), and a client id(int)"""
-
         
         if request.method == 'POST':
 
@@ -203,7 +198,6 @@ def create_app():
                 if a_client:
 
                     # make sure an appointment is not already scheduled at that time on that day
-                    
                     t = [a.time for a in my_day.appointments]
                     my = [a.time for a in a_client.appointments if a.day_id == my_day.id]
                     name = a_client.name
@@ -223,10 +217,8 @@ def create_app():
 
                 return render_template('results2.html', answer=str([i.id+': '+str(i.time)+' on '+i.day.date
                                                                     for i in a_client.appointments]))
-
                             
         return render_template('base.html')
-
 
     @APP.route('/refresh')
     def refresh():
@@ -237,8 +229,8 @@ def create_app():
         return 'Data has been refreshed.'
 
 
-    @APP.route('/planner', methods=['GET', 'POST'])
-    def planner():
+    @APP.route('/view_planner', methods=['GET', 'POST'])
+    def view_planner():
         """this route asks the user for a range of dates entered in the form
            mm/dd - mm/dd, or optionally just one date mm/dd. returned is a 
            list of days matching the length of the data range, each date shows
@@ -259,43 +251,37 @@ def create_app():
                             if datetime.datetime(year=2022,month=m, day=d) == item:                               
                                 values += [ind]                                                                                                                             
                     else:
-                        return redirect(url_for('planner'))
+                        return redirect(url_for('view_planner'))
+
             except Exception as ex_ception:
                 print(str(ex_ception)+' was the exception')
-
-                return redirect(url_for('planner'))
-
-
-                                    
+                return redirect(url_for('view_planner'))
+                     
             if len(values) == 2:
                 r = list(range(values[0], values[1]+1))
             elif len(values) == 1:
                 r = values
 
             else:
-                return redirect(url_for('planner'))
+                return redirect(url_for('view_planner'))
             
             appts = []
             for day_id in r:
                 if Day.query.get(day_id):
-                    # primary keys for day are ints 1- 365
                     my_day = Day.query.get(day_id)
                     tmp = f'{my_day.name} {my_day.date}'
                     extra = []
                     print(my_day.name, my_day.date)
                     for apt in my_day.appointments:
-
                         extra += [str(apt.time)]
                     if extra:
                         appts += [tmp + ' @ ' + ', '.join(extra)]
                     else:
                         appts += [tmp+' - Free']
-                
 
             return render_template('results.html', answer=' | '.join(appts))
 
-        return render_template('base2.html')
-        
+        return render_template('base2.html')  
             
     return APP
 
