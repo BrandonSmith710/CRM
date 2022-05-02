@@ -10,25 +10,27 @@ def create_app():
 
     APP = Flask(__name__)
 
-    datelist = pd.date_range(start="2022-01-01", end="2022-12-31").to_pydatetime().tolist()
+    datelist = pd.date_range(start="2022-01-01",
+                             end="2022-12-31").to_pydatetime().tolist()
 
     APP.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mycrm.sqlite3'
     APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     DB.init_app(APP)
+
     @APP.before_first_request
     def create_tables():
         DB.create_all()
 
-    @APP.route('/', methods=['GET','POST'])
+    @APP.route('/', methods=['GET', 'POST'])
     def root():
         """this route will present the user with number options representing
            places they can go in the CRM"""
 
-        k = {1: 'schedule_appointment', 2: 'view_planner', 3: 'create_client',
-             4:'delete_client', 5: 'delete_appointment', 6: 'check',
-             7: 'load_db', 8: 'refresh'}
-        
+        k = {1: 'schedule_appointment', 2: 'view_planner',
+             3: 'create_client', 4: 'delete_client', 5: 'delete_appointment',
+             6: 'client_appointments', 7: 'check', 8: 'load_db', 9: 'refresh'}
+    
         if request.method == 'POST':
             option = request.form.get('search')
 
@@ -44,10 +46,11 @@ def create_app():
     def load_db():
         # this route will load 365 days into the empty database
 
-        days = 'Sunday Monday Tuesday Wednesday Thursday Friday Saturday'.split()
+        days = '''Sunday Monday Tuesday Wednesday Thursday
+                  Friday Saturday'''.split()
         for i, x in enumerate(datelist):
-            tmp = Day(id=i, date=str(x.month)+'/'+str(x.day), name=days[int(str(x.day))%7])
-            # get a datetime and an int to create appointment for each day
+            tmp = Day(id=i, date=str(x.month)+'/'+str(x.day),
+                      name=days[int(str(x.day)) % 7])
             if not Day.query.get(tmp.id):
                 DB.session.add(tmp)
 
@@ -57,8 +60,9 @@ def create_app():
 
     @APP.route('/create_client', methods=['GET', 'POST'])
     def create_client():
-        """the create_client function will ask the user for an id, name, and age,
-           so that a new client object may be created in the system"""
+        """the create_client function will ask the user for an id,
+           name, and age, so that a new client object may be created
+           in the system"""
 
         if request.method == 'POST':
             
@@ -71,13 +75,16 @@ def create_app():
             try:
                 if not Client.query.get(int(id_x)):
 
-                    new_client = Client(id=int(id_x), name=name_x, age=int(age_x))
+                    new_client = Client(id=int(id_x), name=name_x,
+                                        age=int(age_x))
 
                     DB.session.add(new_client)
                     
                     DB.session.commit()
 
-                    return render_template('results3.html', answer=f'{new_client.name} added to database')
+                    return render_template('results3.html',
+                                           answer=f'''{new_client.name}
+                                           added to database''')
             except:
                 return redirect(url_for('create_client'))
 
@@ -110,16 +117,18 @@ def create_app():
 
     @APP.route('/check')
     def check():
-        """this route allows one to check the occupancy of the Client and
-           Appointment tables after loading, updating or clearing the database,
-           and to ensure that the day objects have been created or deleted as
-           expected"""
-        
-        end =  str([apt.id + ' ' + apt.day.date+' @ '+ str(apt.time)
-        + (' with ' + apt.client.name or ' with Nobody') for apt in
-        Appointment.query.all()]) + '  '+ str([d.date for d in Day.query.all()
-        if d.date[-2:] == '13']) + '  |  Clients' + str([c.name for c in
-        Client.query.all()])
+        """this route allows one to check the occupancy of the Client
+           and Appointment tables after loading, updating or clearing
+           the database, and to ensure that the day objects have been
+           created or deleted as expected"""
+        apmts = str([apt.id + ' ' + apt.day.date + ' @ ' + str(apt.time) +
+                    (' with ' + apt.client.name or ' with Nobody') for apt in
+                    Appointment.query.all()])
+        months = str([d.date[:-3] for d in Day
+                   .query.all() if d.date[-2:] == '13'])
+        clients = str([c.name for c in Client.query.all()])
+        end = 'Appointments: ' + apmts + '  Months: ' + months + (
+              ' Clients: ' + clients)
 
         return end
 
@@ -140,15 +149,17 @@ def create_app():
 
             DB.session.commit()
 
-            return render_template('results4.html', answer='Appointment '+apt_id+' was removed')
+            return render_template('results4.html',
+            answer='Appointment '+apt_id+' was removed')
 
         return render_template('base4.html')
 
     @APP.route('/schedule_appointment', methods=['GET', 'POST'])
     def schedule_appointment():
-        """This route offers the ability to create new appointments for existing clients,
-           currently the CRM accepts a day value for 1-365 to assign the date, an apt.
-           time(int 9-6), and a client id(int)"""
+        """This route offers the ability to create new appointments
+           for existing clients, currently the CRM accepts a day value
+           for 1-365 to assign the date, an apt. time(int 9-6), and an
+           existing client id(int)"""
         
         if request.method == 'POST':
 
@@ -159,32 +170,41 @@ def create_app():
             client_id_x = request.form.get('search35')
     
             # validate input
-            if 5 > len(list(filter(lambda x: x.isdigit(), day_id))) >= 2:
+            if 5 > len(list(filter(lambda x: x.isdigit(),
+                                   day_id))) >= 2:
                 if any(b in day_id for b in '/- .'):
                     for x in '/- .':
                         if x in day_id:                                       
-                            day_id = [int(j) for j in day_id.split(x)]
+                            day_id = [int(j) for j
+                                      in day_id.split(x)]
 
-                            if 0 < day_id[0] < 13 or not 0 < day_id[1] <= 31:                              
+                            if 0 < day_id[0] < 13 or not (0 < day_id[1] <= 31):                              
                                 m, d = day_id
                                 value = 0
 
                                 try:
                                     apt_time = int(apt_time)
-                                    if not apt_time in [9, 10, 11, 12, 1, 2, 3, 4, 5, 6]:
+                                    if apt_time not in [9, 10, 11, 12, 1,
+                                                        2, 3, 4, 5, 6]:
                                         raise Exception
                                     for ind, item in enumerate(datelist):
                                         
-                                        if datetime.datetime(year=2022,month=m, day=d) == item:
+                                        if datetime.datetime(year=2022,
+                                                             month=m,
+                                                             day=d
+                                                             ) == item:
                                             value = ind
                                             break
                                             
                                 except Exception as ex_ception:
-                                    print(str(ex_ception)+' was the exception')
-                                    return redirect(url_for('schedule_appointment'))    
+                                    print(str(ex_ception)+(
+                                    ' was the exception'))
+                                    return redirect(url_for(
+                                    'schedule_appointment'))    
                                     
                             else:
-                                return redirect(url_for('schedule_appointment'))
+                                return redirect(url_for(
+                                'schedule_appointment'))
                 else:                       
                     return redirect(url_for('schedule_appointment'))            
             else:
@@ -197,16 +217,20 @@ def create_app():
 
                 if a_client:
 
-                    # make sure an appointment is not already scheduled at that time on that day
                     t = [a.time for a in my_day.appointments]
-                    my = [a.time for a in a_client.appointments if a.day_id == my_day.id]
+                    my = [a.time for a in a_client.appointments if
+                         a.day_id == my_day.id]
                     name = a_client.name
-                    if not apt_time in t+my:
+                    if apt_time not in t+my:
 
-                        apt_id = ''.join(name[j] for j in range(len(name)) if not j % 2)[::-1] + ('$%'.join(
-                                 list(str(client_id_x)[::-1]))) + str(len(Appointment.query.all()))
+                        apt_id = ''.join(name[j] for j in range(len(
+                                 name)) if not j % 2)[::-1] + ('$%'
+                                 .join(list(str(client_id_x)[::-1]))
+                                 ) + str(len(Appointment.query.all()))
 
-                        apt_x = Appointment(id=apt_id, day_id=my_day.id, time=apt_time, client_id=a_client.id)
+                        apt_x = Appointment(id=apt_id, day_id=my_day.id,
+                                            time=apt_time,
+                                            client_id=a_client.id)
                         my_day.appointments += [apt_x]
                         a_client.appointments += [apt_x]
                         DB.session.add(apt_x)
@@ -216,7 +240,7 @@ def create_app():
                     return redirect(url_for('schedule_appointment'))
 
                 return render_template('results2.html',
-                answer=str(['ID- '+i.id+': '+str(i.time)+' on '+i.day.date
+                answer=str(['ID- ' + i.id + ': ' + str(i.time) + ' on '+ i.day.date
                 for i in a_client.appointments]))
                             
         return render_template('base.html')
@@ -234,21 +258,24 @@ def create_app():
     def view_planner():
         """this route asks the user for a range of dates entered in the form
            mm/dd - mm/dd, or optionally just one date mm/dd. returned is a 
-           list of days matching the length of the data range, each date shows
-           that it is free, or it will show its list of appointments"""
+           list of days matching the length of the data range, each date
+           shows that it is free, or it will show its list of appointments
+           """
 
         if request.method == 'POST':
             day_range = request.form.get('search1')
             try:
                 day_range = [c.split('/') for c in day_range.split('-')]
                 a = lambda d: d.isdigit()
-                day_range = [[int(''.join(filter(a, b))) for b in x] for x in day_range]
+                day_range = [[int(''.join(filter(a, b))) for b in x] for x
+                            in day_range]
                 values = []
                 for day_id in day_range:
                     if 0 < day_id[0] < 13 or not 0 < day_id[1] <= 31:       
                         m, d = day_id           
                         for ind, item in enumerate(datelist):                                           
-                            if datetime.datetime(year=2022, month=m, day=d) == item:                               
+                            if datetime.datetime(year=2022, month=m,
+                            day=d) == item:                               
                                 values += [ind]                                                                                                                             
                     else:
                         return redirect(url_for('view_planner'))
@@ -279,11 +306,25 @@ def create_app():
                     else:
                         appts += [tmp+' - Free']
 
-            return render_template('results.html', answer=' | '.join(appts))
+            return render_template('results.html',
+            answer=' | '.join(appts))
 
-        return render_template('base2.html')  
+        return render_template('base2.html')
+
+    @APP.route('/client_appointments', methods=['GET', 'POST'])
+    def client_appointments():
+        """function will return the past and future of appointments of
+           a specified client"""
+        
+        if request.method == 'POST':
+            cid = request.form.get('search11')
+
+            if Client.query.get(int(cid)):
+                client = Client.query.get(int(cid))
+                answer = str([str(x.day.date) + ' @ ' + str(
+                              x.time) for x in client.appointments])
+                return render_template('results6.html', answer=answer)
+
+        return render_template('base6.html')
             
     return APP
-
-
-
