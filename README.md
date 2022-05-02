@@ -32,7 +32,7 @@ Routes:
 
 /client_appointments - view past and future appointments for a client
 
-/check - view the occupancy of each of the Day, Client and Appointment tables
+/check - view the occupancy of each of the Day, Client and Appointment tables, as well as appointment ID's for existing appointments
 
 /refresh - wipe all Day, Client and Appointment objects from database
 

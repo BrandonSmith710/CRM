@@ -2,7 +2,6 @@ from flask import Flask, request, Response, redirect, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
 import datetime
-from sqlalchemy import BigInteger, ForeignKey, PrimaryKeyConstraint
 from .models import DB, Day, Appointment, Client
 
 
@@ -49,7 +48,7 @@ def create_app():
         days = '''Sunday Monday Tuesday Wednesday Thursday
                   Friday Saturday'''.split()
         for i, x in enumerate(datelist):
-            tmp = Day(id=i, date=str(x.month)+'/'+str(x.day),
+            tmp = Day(id=i, date=str(x.month) + '/' + str(x.day),
                       name=days[int(str(x.day)) % 7])
             if not Day.query.get(tmp.id):
                 DB.session.add(tmp)
@@ -137,9 +136,6 @@ def create_app():
         # route to delete appointments by appointment id
  
         if request.method == 'POST':
-            client_id = request.form.get('search7')
-
-            apt_date = request.form.get('search8')
 
             apt_id = request.form.get('search9')
 
@@ -150,7 +146,7 @@ def create_app():
             DB.session.commit()
 
             return render_template('results4.html',
-            answer='Appointment '+apt_id+' was removed')
+                                    answer='Appointment '+apt_id+' was removed')
 
         return render_template('base4.html')
 
