@@ -236,8 +236,10 @@ def create_app():
                     return redirect(url_for('schedule_appointment'))
 
                 return render_template('results2.html',
-                answer=str(['ID- ' + i.id + ': ' + str(i.time) + ' on '+ i.day.date
-                for i in a_client.appointments]))
+                                       answer=str(['ID- ' +
+                                       i.id + ': ' + str(i.time) +
+                                       ' on '+ i.day.date for i in
+                                       a_client.appointments]))
                             
         return render_template('base.html')
 
