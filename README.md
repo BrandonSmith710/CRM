@@ -6,9 +6,13 @@ The CRM makes use of three relational tables, allows for creation of new clients
 Installation Instructions:
 
 clone repository
+
 pipenv install pandas numpy python-dotenv flask flask-sqlalchemy datetime
+
 pipenv shell
+
 export FLASK_APP=littlecrm
+
 flask run
 
 
