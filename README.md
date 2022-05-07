@@ -1,5 +1,5 @@
 # CRM
-This is a relational database Customer Relationship Manager, which was built using the flask-sqlalchemy ORM. The CRM holds three relational tables, allows for creation of new clients and appointments on any day of the year, deletion of appointments or clients, viewing of schedule for any date range within the year, retrieval of client appointment history. All of these routes are accessible by the home page user interface, or by entry in the URL bar.
+This is a relational database Customer Relationship Manager, which was built using the flask-sqlalchemy ORM. The CRM holds three relational tables, allows for creation of new clients and appointments on any day of the year, deletion of appointments or clients, viewing of schedule for any date range within the year, and retrieval of client appointment history. All of these routes are accessible by the home page user interface, or by entry in the URL bar.
 
 
 Installation Instructions:
